@@ -216,7 +216,7 @@ class RequestHandler(object):
         return default
 
     def set_cookie(self, name, value, domain=None, expires=None, path="/",
-                   expires_days=None):
+                   expires_days=None, secure=False, httponly=False):
         """Sets the given cookie name/value with the given options."""
         name = _utf8(name)
         value = _utf8(value)
@@ -239,6 +239,11 @@ class RequestHandler(object):
                 timestamp, localtime=False, usegmt=True)
         if path:
             new_cookie[name]["path"] = path
+        if secure:
+            new_cookie[name]["secure"] = True
+        if httponly: # Python 2.6+
+            try: new_cookie[name]["httponly"] = True
+            except: pass
 
     def clear_cookie(self, name, path="/", domain=None):
         """Deletes the cookie with the given name."""
