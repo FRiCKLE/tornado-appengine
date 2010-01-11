@@ -892,14 +892,6 @@ class Application(object):
         self._wsgi = wsgi
         self._load_ui_modules(settings.get("ui_modules", {}))
         self._load_ui_methods(settings.get("ui_methods", {}))
-        if self.settings.get("static_path"):
-            path = self.settings["static_path"]
-            handlers = list(handlers or [])
-            handlers.extend([
-                (r"/static/(.*)", StaticFileHandler, dict(path=path)),
-                (r"/(favicon\.ico)", StaticFileHandler, dict(path=path)),
-                (r"/(robots\.txt)", StaticFileHandler, dict(path=path)),
-            ])
         if handlers: self.add_handlers(".*$", handlers)
 
         # Automatically reload modified modules
@@ -913,6 +905,16 @@ class Application(object):
             host_pattern += "$"
         handlers = []
         self.handlers.append((re.compile(host_pattern), handlers))
+
+        if self.settings.get("static_path"):
+            path = self.settings["static_path"]
+            static_handlers = [
+                (r"/static/(.*)", StaticFileHandler, dict(path=path)),
+                (r"/(favicon\.ico)", StaticFileHandler, dict(path=path)),
+                (r"/(robots\.txt)", StaticFileHandler, dict(path=path)),
+            ]
+            static_handlers.extend(host_handlers)
+            host_handlers = static_handlers
 
         for spec in host_handlers:
             if type(spec) is type(()):
@@ -937,8 +939,8 @@ class Application(object):
         for pattern, handlers in self.handlers:
             if pattern.match(host):
                 return handlers
-        # Look for default host if not behind load balancer (for debugging)
-        if "X-Real-Ip" not in request.headers:
+        # Look for default host when debugging
+        if self.settings.get("debug"):
             for pattern, handlers in self.handlers:
                 if pattern.match(self.default_host):
                     return handlers
@@ -978,7 +980,7 @@ class Application(object):
         args = []
         handlers = self._get_host_handlers(request)
         if not handlers:
-            handler = RedirectHandler(
+            handler = RedirectHandler(self,
                 request, "http://" + self.default_host + "/")
         else:
             for spec in handlers:
