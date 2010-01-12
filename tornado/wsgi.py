@@ -127,8 +127,8 @@ class HTTPRequest(object):
             for name, values in cgi.parse_qs(self.body).iteritems():
                 self.arguments.setdefault(name, []).extend(values)
         elif content_type.startswith("multipart/form-data"):
-            boundary = content_type[30:]
-            if boundary: self._parse_mime_body(boundary)
+            tuple = content_type.partition('=')
+            if tuple[2]: self._parse_mime_body(tuple[2].strip('"'))
 
         self._start_time = time.time()
         self._finish_time = None
