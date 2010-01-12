@@ -55,7 +55,6 @@ import cStringIO
 import escape
 import httplib
 import logging
-import re
 import sys
 import time
 import urllib
@@ -87,9 +86,6 @@ class WSGIApplication(web.Application):
 
 class HTTPRequest(object):
     """Mimics httpserver.HTTPRequest for WSGI applications."""
-
-    _BOUNDARY_PATTERN = re.compile('.*boundary=.*?"?(\S+?)"?$')
-
     def __init__(self, environ):
         """Parses the given WSGI environ to construct the request."""
         self.method = environ["REQUEST_METHOD"]
@@ -131,8 +127,8 @@ class HTTPRequest(object):
             for name, values in cgi.parse_qs(self.body).iteritems():
                 self.arguments.setdefault(name, []).extend(values)
         elif content_type.startswith("multipart/form-data"):
-            match = self._BOUNDARY_PATTERN.match(content_type)
-            if match: self._parse_mime_body(match.group(1))
+            boundary = content_type[30:]
+            if boundary: self._parse_mime_body(boundary)
 
         self._start_time = time.time()
         self._finish_time = None
