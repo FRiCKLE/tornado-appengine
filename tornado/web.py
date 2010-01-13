@@ -1095,6 +1095,8 @@ class StaticFileHandler(RequestHandler):
         if not os.path.isfile(abspath):
             raise HTTPError(403, "%s is not a file", path)
 
+        del self._headers["Content-Type"]
+
         # Check the If-Modified-Since, and don't send the result if the
         # content has not been modified
         stat_result = os.stat(abspath)
