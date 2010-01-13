@@ -287,6 +287,15 @@ class HTTPHeaders(dict):
     def __getitem__(self, name):
         return dict.__getitem__(self, self._normalize_name(name))
 
+    def __contains__(self, name):
+        return dict.__contains__(self, self._normalize_name(name))
+
+    def get(self, name, default=None):
+        return dict.get(self, self._normalize_name(name), default)
+
+    def setdefault(self, name, default):
+        return dict.setdefault(self, self._normalize_name(name), default)
+
     def _normalize_name(self, name):
         return "-".join([w.capitalize() for w in name.split("-")])
 
