@@ -644,8 +644,8 @@ class RequestHandler(object):
 
         We append ?v=<signature> to the returned URL, which makes our
         static file handler set an infinite expiration header on the
-        returned content. The signature is based on the content of the
-        file.
+        returned content. The signature is hexadecimal representation
+        of the last modification time of the file.
 
         If this handler has a "include_host" attribute, we include the
         full host for every static URL, including the "http://". Set
@@ -657,18 +657,18 @@ class RequestHandler(object):
             RequestHandler._static_hashes = {}
         hashes = RequestHandler._static_hashes
         if path not in hashes:
-            try:
-                f = open(os.path.join(
-                    self.application.settings["static_path"], path))
-                hashes[path] = hashlib.md5(f.read()).hexdigest()
-                f.close()
-            except:
+            abspath = os.path.abspath(os.path.join(
+                          self.application.settings["static_path"], path))
+            if os.path.exists(abspath) and os.path.isfile(abspath):
+                mtime = os.stat(abspath)[stat.ST_MTIME]
+                hashes[path] = hex(mtime)[2:]
+            else:
                 logging.error("Could not open static file %r", path)
                 hashes[path] = None
         base = self.request.protocol + "://" + self.request.host \
             if getattr(self, "include_host", False) else ""
         if hashes.get(path):
-            return base + "/static/" + path + "?v=" + hashes[path][:5]
+            return base + "/static/" + path + "?v=" + hashes[path]
         else:
             return base + "/static/" + path
 
