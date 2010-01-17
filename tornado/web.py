@@ -479,6 +479,8 @@ class RequestHandler(object):
             self.flush(include_footers=True)
             self.request.finish()
             self._log()
+        elif self.request.method == "HEAD":
+            self._write_buffer = []
         self._finished = True
 
     def send_error(self, status_code=500, **kwargs):
