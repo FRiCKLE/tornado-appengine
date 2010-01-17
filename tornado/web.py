@@ -143,6 +143,7 @@ class RequestHandler(object):
         self._headers = {
             "Server": "TornadoServer/0.1",
             "Content-Type": "text/html; charset=UTF-8",
+            "Cache-Control": "no-cache"
         }
         if not self.request.supports_http_1_1():
             if self.request.headers.get("Connection") == "Keep-Alive":
@@ -474,6 +475,9 @@ class RequestHandler(object):
             if "Content-Length" not in self._headers:
                 content_length = sum(len(part) for part in self._write_buffer)
                 self.set_header("Content-Length", content_length)
+            if self._headers.get("Cache-Control") == "no-cache" and \
+               "Expires" not in self._headers:
+                self.set_header("Expires", "Fri, 01 Jan 1990 00:00:00 GMT")
 
         if not self.application._wsgi:
             self.flush(include_footers=True)
