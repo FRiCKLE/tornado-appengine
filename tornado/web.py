@@ -1101,8 +1101,6 @@ class StaticFileHandler(RequestHandler):
         # content has not been modified
         stat_result = os.stat(abspath)
         modified = datetime.datetime.fromtimestamp(stat_result[stat.ST_MTIME])
-        self.set_header("Last-Modified", modified)
-
         ims_value = self.request.headers.get("If-Modified-Since")
         if ims_value is not None:
             date_tuple = email.utils.parsedate(ims_value)
@@ -1111,6 +1109,7 @@ class StaticFileHandler(RequestHandler):
                 self.set_status(304)
                 return
 
+        self.set_header("Last-Modified", modified)
         self.set_header("Content-Length", stat_result[stat.ST_SIZE])
         if "v" in self.request.arguments:
             self.set_header("Expires", datetime.datetime.utcnow() + \
