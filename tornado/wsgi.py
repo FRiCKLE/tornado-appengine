@@ -67,7 +67,7 @@ class WSGIApplication(web.Application):
     We support the same interface, but handlers running in a WSGIApplication
     do not support flush() or asynchronous methods.
     """
-    def __init__(self, handlers=None, default_host="", **settings):
+    def __init__(self, handlers=None, default_host=None, **settings):
         web.Application.__init__(self, handlers, default_host, transforms=[],
                                  wsgi=True, **settings)
 

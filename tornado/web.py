@@ -886,7 +886,7 @@ class Application(object):
     keyword argument. We will serve those files from the /static/ URI,
     and we will serve /favicon.ico and /robots.txt from the same directory.
     """
-    def __init__(self, handlers=None, default_host="", transforms=None,
+    def __init__(self, handlers=None, default_host=None, transforms=None,
                  wsgi=False, **settings):
         if transforms is None:
             self.transforms = []
@@ -952,7 +952,7 @@ class Application(object):
             if pattern.match(host):
                 return handlers
         # Look for default host when debugging
-        if self.settings.get("debug"):
+        if self.settings.get("debug") and self.default_host:
             for pattern, handlers in self.handlers:
                 if pattern.match(self.default_host):
                     return handlers
@@ -992,8 +992,11 @@ class Application(object):
         args = []
         handlers = self._get_host_handlers(request)
         if not handlers:
-            handler = RedirectHandler(self,
-                request, "http://" + self.default_host + "/")
+            if self.default_host:
+                handler = RedirectHandler(self, request,
+                    "http://" + self.default_host + "/")
+            else:
+                handler = ErrorHandler(self, request, 404)
         else:
             for spec in handlers:
                 match = spec.regex.match(request.path)
